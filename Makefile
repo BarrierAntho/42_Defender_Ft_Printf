@@ -1,6 +1,9 @@
 # User settings
 PRINTFPATH	:=	ft_printf
-PRINTFNAME	:=	ft
+IPRINTF		:=	include
+PRINTFHEADER	:=	ft_printf.h
+PRINTFNAME	:=	libft.a
+PRINTFL		:=	ft
 
 # Standard settings
 SEP_P		:=	"----------------------------------------------"
@@ -14,39 +17,52 @@ DFLAGS		:=	-MMD
 IPATH		:=	include
 
 # SOURCES FOLDER
-SRCSPATH	:=	test
-ORIPATH		:=	ori_srcs
+SRCSPATH	:=	srcs
 
 RM		:=	rm -rf
+
+# Copying fr_printf.h path into include/main.h
+SEDTEXT		:=	'19s/xxxx/${PRINTFPATH}\/${IPRINTF}\/${PRINTFHEADER}/g'
+COPYINGHEADER	:= 	$(shell sed -i ${SEDTEXT} include/main.h)
 
 HEADERS		:=	$(wildcard ${IPATH}/*.h)
 SRCS		:=	$(wildcard ${SRCSPATH}/*.c)
 
-ORIHEADERS	:=	$(wildcard ${ORIPATH}/*.h)
-ORISRCS		:=	$(wildcard ${ORIPATH}/*.c)
+OBJS		=	${SRCS:.c=.o}
 
-OBJS		=	${SRCS:.c=.o}\
-			${ORISRCS:.c=.o}
-
-all:			${EXEC} ${PRINTFNAME}
+all:			${EXEC} 
 
 %.o:			%.c ${HEADERS}
-			${CC} ${CFLAGS} ${CFLAGSADD} -I ${IPATH} -c $< -o $@
+			${CC} ${CFLAGS} ${CFLAGSADD} -I ${IPATH} -I ${PRINTFPATH}/${IPRINTF} -c $< -o $@
 
-${EXEC}:		${OBJS}
+${EXEC}:		${OBJS} 
 			make -C ${PRINTFPATH}
-			${CC} ${CFLAGS} ${CFLAGSADD} -L${PRINTFPATH} -l${PRINTFNAME} ${OBJS} -o ${EXEC}
-
+			${CC} ${CFLAGS} ${CFLAGSADD} ${OBJS} -I ${PRINTFPATH}/${IPRINTF} -L${PRINTFPATH} -l${PRINTFL} -o ${EXEC} 
 clean:
+			make clean -C ${PRINTFPATH}
 			${RM} ${OBJS}
 
-fclean:			clean
+fclean:			
+			make fclean -C ${PRINTFPATH}
+			make clean
 			${RM} ${EXEC}
 
-re:			fclean all
+re:			
+			make re -C ${PRINTFPATH}
+			make fclean all
 
 norme:
 			@echo ${SEP_P}
-			norminette ${PRINTFPATH}
+			norminette ${SRCSPATH}
+			@echo ${SEP_P}
+			make norme -C ${PRINTFPATH}
+
+run_ori_no_bonus:
+			@make all -s
+			@./${EXEC} 0 0
+
+run_mft_no_bonus:
+			@make all -s
+			@./${EXEC} 1 0
 
 .PHONY:			all clean fclean re norme
